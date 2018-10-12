@@ -8,16 +8,16 @@ cd $DIR
 # Get ISO Image
 mkdir -p ISOTMP
 cd ISOTMP
-wget -c http://releases.ubuntu.com/16.04.4/ubuntu-16.04.4-server-amd64.iso
+wget -c http://cdimage.ubuntu.com/releases/18.04.1/release/ubuntu-18.04.1-server-amd64.iso
 sudo mkdir -p /mnt/cdrom
-sudo mount -o loop ubuntu-16.04.4-server-amd64.iso /mnt/cdrom
+sudo mount -o loop ubuntu-18.04.1-server-amd64.iso /mnt/cdrom
 rm -rf image
 mkdir -p image
 rsync -av /mnt/cdrom/ image/
 sudo umount /mnt/cdrom
 
 chmod 755 image/preseed
-cp ../vmware.seed image/preseed
+cp ../vmware.seed image/preseed/
 
 cd image/isolinux
 chmod 755 .
@@ -29,7 +29,7 @@ sudo find image -type d -exec chmod 755 {} \;
 sudo find image -type f -exec chmod 644 {} \;
 
 NOW=$(date '+%Y%m%d-%H%M%S')
-ISO="truemark-vmware-ubuntu-16.04.4-server-amd64-${NOW}.iso"
+ISO="truemark-vmware-ubuntu-18.04.1-server-amd64-${NOW}.iso"
 
 mkisofs -r -V "TrueMark Ubuntu Install CD" \
   -cache-inodes \
