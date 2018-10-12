@@ -40,4 +40,4 @@ mkisofs -r -V "TrueMark Ubuntu Install CD" \
 
 sudo rm -rf image
 sha1sum ${ISO} > ${ISO}.sha1
-scp -P 2020 ${ISO} ${ISO}.shq1 download@69.160.74.206:iso/
+scp ${ISO} ${ISO}.sha1 download@ssh download@172.16.224.50:iso/
