@@ -29,15 +29,15 @@ sudo find image -type d -exec chmod 755 {} \;
 sudo find image -type f -exec chmod 644 {} \;
 
 NOW=$(date '+%Y%m%d-%H%M%S')
+ISO="truemark-vmware-ubuntu-16.04.4-server-amd64-${NOW}.iso"
 
 mkisofs -r -V "TrueMark Ubuntu Install CD" \
   -cache-inodes \
   -J -l -b isolinux/isolinux.bin \
   -c isolinux/boot.cat -no-emul-boot \
   -boot-load-size 4 -boot-info-table \
-  -o truemark-vmware-ubuntu-16.04.4-server-amd64-${NOW}.iso image/
+  -o ${ISO} image/
 
 sudo rm -rf image
-#sha1sum truemark-vmware-ubuntu-16.04.4-server-amd64.iso > truemark-vmware-ubuntu-16.04.4-server-amd64.iso.sha1
-#scp -P 2020 truemark-vmware-ubuntu-16.04.4-server-amd64.iso download@69.160.74.206:iso/
-#scp -P 2020 truemark-vmware-ubuntu-16.04.4-server-amd64.iso.sha1 download@69.160.74.206:iso/
+sha1sum ${ISO} > ${ISO}.sha1
+scp -P 2020 ${ISO} ${ISO}.shq1 download@69.160.74.206:iso/
