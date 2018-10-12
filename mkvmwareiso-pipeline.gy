@@ -1,0 +1,33 @@
+import groovy.json.JsonSlurperClassic
+node("truemark") {
+	def jenkinsBuild = "${env.JOB_NAME} <${env.BUILD_URL}|#${env.BUILD_NUMBER}>"
+	def actor = '';
+	if ("${METADATA}"?.trim()) {
+		sh "echo '${METADATA}'" // helpful for debugging
+		def meta = new JsonSlurperClassic().parseText(METADATA.toString());
+		actor = "<${meta.actor.url}|${meta.actor.display}>"
+	} else {
+		wrap([$class: 'BuildUser']) {
+			actor = "${BUILD_USER_ID}".replaceAll(/@.*/, "")
+		}
+	}
+	slackSend channel: "#tm", color: "#cecece", message: "${actor} Job Started: ${jenkinsBuild}"
+	try {
+		stage('Preparation') {
+			git url: 'git@github.com:truemark/installs.git', branch: 'master', shallow: true
+		}
+		stage('Build') {
+			sh './mkvmwareiso.sh'
+		}
+		if (currentBuild.result == null) { // Only build if we haven't failed or gone unstable
+			stage('Results') {
+				slackSend channel: "#tm", color: "good", message: "Job Success: ${jenkinsBuild}"
+			}
+		} else {
+			slackSend channel: "#tm", color: "danger", message: "Job Failed: ${jenkinsBuild}"
+		}
+	} catch (err) {
+		slackSend channel: "#tm", color: "danger", message: "Job Failed: ${jenkinsBuild}"
+		throw err
+	}
+}
