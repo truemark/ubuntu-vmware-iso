@@ -13,9 +13,9 @@ node("truemark") {
 	}
 	slackSend channel: "#tm", color: "#cecece", message: "${actor} Job Started: ${jenkinsBuild}"
 	try {
-//		stage('Preparation') {
-//			git url: 'git@github.com:truemark/installs.git', branch: '16.04', shallow: true
-//		}
+		stage('Preparation') {
+			git url: 'git@github.com:truemark/ubuntu-vmware-iso.git', branch: '16.04', shallow: true
+		}
 		stage('Build') {
 			sh './mkvmwareiso.sh'
 		}
