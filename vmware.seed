@@ -149,11 +149,3 @@ d-i pkgsel/update-policy select none
 
 # Avoid that last message about the install being complete.
 d-i finish-install/reboot_in_progress note
-
-# Set buffers on network interface
-d-i preseed/late_command string \
-echo '#!/bin/bash' > /target/etc/rc.local; \
-echo '/sbin/ethtool -G ens192 rx 4096 tx 4096' >> /target/etc/rc.local; \
-echo '/sbin/ethtool -G ens33 rx 4096 tx 4096' >> /target/etc/rc.local; \
-echo 'exit 0' >> /target/etc/rc.local; \
-chmod +x /target/etc/rc.local;
