@@ -1,0 +1,157 @@
+#### TrueMark Ubuntu Preseed Installation Script
+
+## Useful Links
+# https://help.ubuntu.com/lts/installation-guide/armhf/apbs01.html
+# https://help.ubuntu.com/lts/installation-guide/example-preseed.txt
+# https://askubuntu.com/questions/796145/cant-preseed-ubuntu-desktop-installation/815904
+# https://cptyesterday.wordpress.com/2012/06/17/notes-on-using-expert_recipe-in-debianubuntu-preseed-files/
+# https://wiki.ubuntu.com/Enterprise/WorkstationAutoinstallPreseed
+# https://github.com/xobs/debian-installer/blob/master/doc/devel/partman-auto-recipe.txt
+
+# Ask only critical questions
+d-i debconf/priority string critical
+
+# Set language and country
+d-i debian-installer/locale string en_US
+
+# Disable automatic (interactive) keymap detection and select US keyboard
+d-i console-setup/ask_detect boolean false
+d-i keyboard-configuration/xkb-keymap select us
+
+# Configure network
+d-i netcfg/choose_interface select auto
+
+# Set hostname
+d-i netcfg/get_hostname string unassigned-hostname
+d-i netcfg/get_domain string unassigned-domain
+d-i netcfg/hostname string ubuntu
+
+# Account setup
+d-i passwd/user-fullname string Ubuntu User
+d-i passwd/username string user
+d-i passwd/user-password password truemark
+d-i passwd/user-password-again password truemark
+
+# Do not encrypt the user home directory
+d-i user-setup/encrypt-home boolean false
+
+# Setup the clock
+d-i clock-setup/utc boolean true
+d-i time/zone string Etc/UTC
+
+# Setup ntp
+d-i clock-setup/ntp boolean true
+
+# Partitioning
+d-i partman-auto/disk string /dev/sda
+#d-i partman-auto/choose_recipe select root_swap
+d-i partman-auto/method string lvm
+d-i partman-auto/purge_lvm_from_device boolean true
+d-i partman-auto-lvm/guided_size string 100%
+d-i partman-auto-lvm/no_boot boolean true
+
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+d-i partman-md/confirm_nooverwrite boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/device_remove_lvm_span boolean true
+
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman-auto-lvm/new_vg_name string vg1
+#1 1 1 free \
+#	$iflabel{ gpt } \
+#	$reusemethod{ } \
+#	method{ biosgrub } . \
+d-i partman-auto/expert_recipe string \
+boot-root :: \
+500 500 500 ext2 \
+	$primary{ } $bootable{ } \
+	$defaultignore{ } \
+	method{ format } \
+	format{ } \
+	use_filesystem{ } \
+	$default_filesystem{ } \
+	mountpoint{ /boot } . \
+1000 1000 1000000000  ext4 \
+	$primary{ } \
+	method{ lvm } \
+	device{ /dev/sda } \
+	vg_name{ vg1 } . \
+4000 1500 4000 $default_filesystem \
+	$lvmok{ } $lv_name{ root } $in_vg{ vg1 } \
+	method{ format } \
+	format{ } \
+	use_filesystem{ } \
+	$default_filesystem{ } \
+	mountpoint{ / } . \
+2000 2000 2000 linux-swap \
+	$lvmok{ } $lv_name{ swap } $in_vg{ vg1 } \
+	$reusemethod{ } \
+	method{ swap } \
+	format{ } . \
+1000 2500 1000 $default_filesystem \
+	$lvmok{ } $lv_name{ tmp } $in_vg{ vg1 } \
+	method{ format } \
+	format{ } \
+	use_filesystem{ } \
+	$default_filesystem{ } \
+	mountpoint{ /tmp } . \
+2000 3000 2000 $default_filesystem \
+	$lvmok{ } $lv_name{ var } $in_vg{ vg1 } \
+	method{ format } \
+	format{ } \
+	use_filesystem{ } \
+	$default_filesystem{ } \
+	mountpoint{ /var } . \
+2000 3500 2000 $default_filesystem \
+	$lvmok{ } $lv_name{ varlog } $in_vg{ vg1 } \
+	method{ format } \
+	format{ } \
+	use_filesystem{ } \
+	$default_filesystem{ } \
+	mountpoint{ /var/log } . \
+2000 4000 2000 $default_filesystem \
+	$lvmok{ } $lv_name{ home } $in_vg{ vg1 } \
+	method{ format } \
+	format{ } \
+	use_filesystem{ } \
+	$default_filesystem{ } \
+	mountpoint{ /home } .
+
+# Install grub on /dev/sda
+d-i grub-installer/bootdev string /dev/sda
+
+# Install virtual kernel with no headers
+d-i base-installer/kernel/override-image string linux-virtual
+d-i base-installer/kernel/headers boolean false
+
+# Skip standard tasks
+tasksel tasksel/skip-tasks string standard
+
+# Upgrade packages after debootstrap
+d-i pkgsel/upgrade select full-upgrade
+
+# Install packages
+d-i base-installer/install-recommends boolean false
+d-i pkgsel/include string openssh-server ntp open-vm-tools ethtool haveged curl
+
+# No boot splash screen
+d-i debian-installer/splash boolean false
+
+# No unattended upgrades
+unattended-upgrades unattended-upgrades/enable_auto_updates boolean false
+d-i pkgsel/update-policy select none
+
+# Avoid that last message about the install being complete.
+d-i finish-install/reboot_in_progress note
+
+# Set buffers on network interface
+d-i preseed/late_command string \
+echo '#!/bin/bash' > /target/etc/rc.local; \
+echo '/sbin/ethtool -G ens192 rx 4096 tx 4096' >> /target/etc/rc.local; \
+echo '/sbin/ethtool -G ens33 rx 4096 tx 4096' >> /target/etc/rc.local; \
+echo 'exit 0' >> /target/etc/rc.local; \
+chmod +x /target/etc/rc.local;
