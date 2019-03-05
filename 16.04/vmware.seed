@@ -12,7 +12,7 @@
 d-i debconf/priority string critical
 
 # Set language and country
-d-i debian-installer/locale string en_US
+d-i debian-installer/locale string en_US.UTF-8
 
 # Disable automatic (interactive) keymap detection and select US keyboard
 d-i console-setup/ask_detect boolean false
